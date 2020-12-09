@@ -1,40 +1,39 @@
-name: Build DNSproxy
+name: Create release
 
 on:
   push:
-    tags-ignore:
+    tags:
       - 'v*'
 
-jobs:
-  tests_win_mac:
-    runs-on: ${{ matrix.os }}
-    env:
-      GO111MODULE: "on"
-    strategy:
-      matrix:
-        os:
-          - windows-latest
-#          - macos-latest because it fails
-          - ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-go@v1
-        with:
-          go-version: 1.14.x
-      - name: tests
-        run: go test -mod=vendor -race -v -bench=. -coverprofile=coverage.txt -covermode=atomic ./...
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v1
-        if: "success() && matrix.os == ubuntu-latest"
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.txt
+#jobs:
+#  tests:
+#    runs-on: ${{ matrix.os }}
+#    env:
+#      GO111MODULE: "on"
+#    strategy:
+#      matrix:
+#        os:
+#          - windows-latest
+##          - macos-latest because it fails
+#          - ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@master
+#      - uses: actions/setup-go@v1
+#        with:
+#          go-version: 1.14.x
+#      - name: tests
+#        run: go test -mod=vendor -race -v -bench=. -coverprofile=coverage.txt -covermode=atomic ./...
+#
+#      - name: Upload coverage
+#        uses: codecov/codecov-action@v1
+#        if: "success() && matrix.os == ubuntu-latest"
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          file: ./coverage.txt
 
   build:
-    needs:
-      - tests_win_mac
-      - tests_linux
+#    needs:
+#      - tests
     runs-on: ubuntu-latest
     env:
       GO111MODULE: "on"
@@ -43,44 +42,65 @@ jobs:
       - uses: actions/setup-go@v1
         with:
           go-version: 1.14.x
+
+      - name: Show release
+        run: echo "RELEASE_VERSION=${GITHUB_REF##*/}"
+
       - name: Build
         run: |-
-          GOOS=windows GOARCH=386 VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=windows GOARCH=amd64 VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=linux GOARCH=386 VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=linux GOARCH=amd64 VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=linux GOARCH=arm64 VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=linux GOARCH=arm GOARM=6 VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=linux GOARCH=mips GOMIPS=softfloat VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=linux GOARCH=mipsle GOMIPS=softfloat VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=freebsd GOARCH=arm GOARM=6 VERSION=${RELEASE_VERSION:-dev} make release
-          GOOS=darwin GOARCH=amd64 VERSION=${RELEASE_VERSION:-dev} make release
-          ls -l build/dnsproxy-*
+          GOOS=windows GOARCH=386 VERSION=${GITHUB_REF##*/:-dev} make release
+#          GOOS=linux GOARCH=386 VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=windows GOARCH=amd64 VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=linux GOARCH=386 VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=linux GOARCH=amd64 VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=linux GOARCH=arm64 VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=linux GOARCH=arm GOARM=6 VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=linux GOARCH=mips GOMIPS=softfloat VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=linux GOARCH=mipsle GOMIPS=softfloat VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=freebsd GOARCH=arm GOARM=6 VERSION=${GITHUB_REF#refs/*/} make release
+#          GOOS=darwin GOARCH=amd64 VERSION=${GITHUB_REF#refs/*/} make release
+#          ls -l build/dnsproxy-*
 
-  notify:
-    needs:
-      - tests
-    # Secrets are not passed to workflows that are triggered by a pull request
-    # from a fork.
-    #
-    # Use always() to signal to the runner that this job must run even if the
-    # previous ones failed.
-    if:
-      ${{ always() &&
-        (
-          github.event_name == 'push' ||
-          github.event.pull_request.head.repo.full_name == github.repository
-        )
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Conclusion
-        uses: technote-space/workflow-conclusion-action@v1
-      - name: Send Slack notif
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ env.WORKFLOW_CONCLUSION }}
-          fields: repo, message, commit, author, job
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+#      - name: Create release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          draft: false
+#          prerelease: false
+#
+#      - name: Upload
+#        uses: xresloader/upload-to-github-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          file: "build/dnsproxy-*.tar.gz;build/dnsproxy-*.zip"
+#          tags: true
+#          draft: false
+
+#  notify:
+#    needs:
+#      - build
+
+#    if:
+#      ${{ always() &&
+#        (
+#          github.event_name == 'push' ||
+#          github.event.pull_request.head.repo.full_name == github.repository
+#        )
+#      }}
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Conclusion
+#        uses: technote-space/workflow-conclusion-action@v1
+#      - name: Send Slack notif
+#        uses: 8398a7/action-slack@v3
+#        with:
+#          status: ${{ env.WORKFLOW_CONCLUSION }}
+#          fields: repo, message, commit, author, job
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
