@@ -50,7 +50,7 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           if $RELEASE_VERSION != v*
           then
-          $RELEASE_VERSION = ''
+          RELEASE_VERSION = ''
           fi
           GOOS=windows GOARCH=386 VERSION=${RELEASE_VERSION:-dev}dev make release
 #          GOOS=linux GOARCH=386 VERSION=${GITHUB_REF#refs/*/} make release
