@@ -44,6 +44,7 @@ jobs:
       - name: Show release
         run: |-
           echo "RELEASE_VERSION=${GITHUB_REF##*/}"
+          echo $RELEASE_VERSION
 
       - name: Build
         if:
