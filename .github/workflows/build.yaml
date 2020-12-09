@@ -47,9 +47,11 @@ jobs:
       - name: Build dev
 #        if: ${{ env.RELEASE_VERSION }} != v*
         run: |-
-          export RELEASE="${GITHUB_REF##*/}"
-          echo $RELEASE
-#          GOOS=windows GOARCH=386 VERSION=${RELEASE:-dev}dev make release
+          RELEASE_VERSION="${GITHUB_REF##*/}"
+          if $RELEASE_VERSION != v*
+          else
+          $RELEASE_VERSION = ''
+          GOOS=windows GOARCH=386 VERSION=${RELEASE:-dev}dev make release
 #          GOOS=linux GOARCH=386 VERSION=${GITHUB_REF#refs/*/} make release
 #          GOOS=windows GOARCH=amd64 VERSION=${GITHUB_REF#refs/*/} make release
 #          GOOS=linux GOARCH=386 VERSION=${GITHUB_REF#refs/*/} make release
