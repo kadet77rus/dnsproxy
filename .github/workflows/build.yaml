@@ -52,7 +52,7 @@ jobs:
           then
           $RELEASE_VERSION = ''
           fi
-          GOOS=windows GOARCH=386 VERSION=${RELEASE:-dev}dev make release
+          GOOS=windows GOARCH=386 VERSION=${RELEASE_VERSION:-dev}dev make release
 #          GOOS=linux GOARCH=386 VERSION=${GITHUB_REF#refs/*/} make release
 #          GOOS=windows GOARCH=amd64 VERSION=${GITHUB_REF#refs/*/} make release
 #          GOOS=linux GOARCH=386 VERSION=${GITHUB_REF#refs/*/} make release
