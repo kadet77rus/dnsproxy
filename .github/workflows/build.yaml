@@ -4,38 +4,38 @@ on:
   push:
 
 jobs:
-  tests:
-    runs-on: ${{ matrix.os }}
-    env:
-      GO111MODULE: "on"
-    strategy:
-      matrix:
-        os:
-          - windows-latest
-          - macos-latest
-          - ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@master
-
-      - uses: actions/setup-go@v2
-        with:
-          go-version: 1.14.x
-
-      - name: Run tests
-        run: |-
-          go test -mod=vendor -race -v -bench="." -coverprofile="coverage.txt" -covermode=atomic ./...
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v1
-        if: "success() && matrix.os == 'ubuntu-latest'"
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.txt
+#  tests:
+#    runs-on: ${{ matrix.os }}
+#    env:
+#      GO111MODULE: "on"
+#    strategy:
+#      matrix:
+#        os:
+#          - windows-latest
+#          - macos-latest
+#          - ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@master
+#
+#      - uses: actions/setup-go@v2
+#        with:
+#          go-version: 1.14.x
+#
+#      - name: Run tests
+#        run: |-
+#          go test -mod=vendor -race -v -bench="." -coverprofile="coverage.txt" -covermode=atomic ./...
+#
+#      - name: Upload coverage
+#        uses: codecov/codecov-action@v1
+#        if: "success() && matrix.os == 'ubuntu-latest'"
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          file: ./coverage.txt
 
   build:
-    needs:
-      - tests
+#    needs:
+#      - tests
     runs-on: ubuntu-latest
     env:
       GO111MODULE: "on"
@@ -51,6 +51,7 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           if [[ "${RELEASE_VERSION}" != "v*\.*\.*" ]]; then RELEASE_VERSION='dev'; fi
           echo "RELEASE_VERSION=\"${RELEASE_VERSION}\"" >> $GITHUB_ENV
+          echo "${RELEASE_VERSION}"
 
       # Win
       - run: GOOS=windows GOARCH=386 VERSION=${RELEASE_VERSION} make release
@@ -103,26 +104,26 @@ jobs:
           tags: true
           draft: false
 
-  notify:
-    needs:
-      - build
-    if:
-      ${{ always() &&
-        (
-          github.event_name == 'push' ||
-          github.event.pull_request.head.repo.full_name == github.repository
-        )
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Conclusion
-        uses: technote-space/workflow-conclusion-action@v1
-
-      - name: Send Slack notif
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ env.WORKFLOW_CONCLUSION }}
-          fields: workflow, repo, message, commit, author, eventName,ref
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+#  notify:
+#    needs:
+#      - build
+#    if:
+#      ${{ always() &&
+#        (
+#          github.event_name == 'push' ||
+#          github.event.pull_request.head.repo.full_name == github.repository
+#        )
+#      }}
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Conclusion
+#        uses: technote-space/workflow-conclusion-action@v1
+#
+#      - name: Send Slack notif
+#        uses: 8398a7/action-slack@v3
+#        with:
+#          status: ${{ env.WORKFLOW_CONCLUSION }}
+#          fields: workflow, repo, message, commit, author, eventName,ref
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
